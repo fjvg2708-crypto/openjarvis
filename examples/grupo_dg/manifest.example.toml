@@ -1,0 +1,42 @@
+# Manifesto de projetos do Grupo DG
+#
+# Copiar este ficheiro para "manifest.toml" (fora do controlo de versões,
+# ver .gitignore) e preencher uma entrada [[projeto]] por cada pasta real
+# de projeto ou de cliente que deve ficar indexada.
+#
+# Este ficheiro não move, renomeia nem altera nenhum documento original.
+# "path" aponta apenas para a leitura da pasta existente.
+#
+# Campos por projeto:
+#   path            Caminho absoluto da pasta a indexar. Obrigatório.
+#   empresa         Empresa do Grupo DG responsável. Ver taxonomy.py.
+#   projeto         Nome ou código interno do projeto. Obrigatório.
+#   cliente         Cliente ou dono de obra.
+#   pais            País onde o projeto decorre.
+#   area_negocio    Construção, Energia, Imobiliário, Defesa ou
+#                   Desenvolvimento de Projetos. Ver taxonomy.py.
+#   estado          Estado atual. Ver taxonomy.py para os valores sugeridos.
+#   categoria_default   Categoria a atribuir quando nenhuma palavra-chave
+#                       da taxonomia corresponder ao nome do ficheiro.
+#                       Opcional, por omissão fica "Por classificar".
+
+[[projeto]]
+path = "[caminho absoluto real, por exemplo /home/jorge/Projetos/Nome-Do-Projeto]"
+empresa = "[DGPW S.A.]"
+projeto = "[nome ou código do projeto]"
+cliente = "[nome do cliente ou dono de obra]"
+pais = "[Portugal]"
+area_negocio = "[Construção]"
+estado = "[Em curso]"
+categoria_default = "Documentação Técnica"
+
+# Duplicar o bloco acima para cada projeto adicional.
+#
+# [[projeto]]
+# path = "..."
+# empresa = "..."
+# projeto = "..."
+# cliente = "..."
+# pais = "..."
+# area_negocio = "..."
+# estado = "..."

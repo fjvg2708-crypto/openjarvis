@@ -1,0 +1,61 @@
+# Grupo DG — base de organização e consulta de projetos
+# Copiar para ~/.openjarvis/config.toml com:  jarvis init --preset grupo-dg --force
+#
+# Este preset assume um modelo local via Ollama, sem qualquer chamada a
+# serviços cloud por omissão. A base de conhecimento é local
+# (~/.openjarvis/knowledge.db), construída por
+# examples/grupo_dg/index_projects.py a partir do manifest.toml do
+# utilizador.
+#
+# Fluxo:
+#   1. cp examples/grupo_dg/manifest.example.toml examples/grupo_dg/manifest.toml
+#      (preencher com as pastas de projeto reais)
+#   2. python examples/grupo_dg/index_projects.py --manifest examples/grupo_dg/manifest.toml
+#   3. jarvis ask --agent deep_research "qual é o estado do projeto X?"
+#   4. python examples/grupo_dg/dashboard.py
+
+[engine]
+default = "ollama"
+
+[intelligence]
+default_model = "qwen3.5:9b"
+temperature = 0.2                 # Baixa temperatura, respostas factuais sobre contratos e prazos
+
+[agent]
+default_agent = "deep_research"
+max_turns = 10
+
+[tools]
+# Sem web_search por omissão: mantém as perguntas confinadas à documentação
+# indexada localmente. Ativar web_search manualmente se for útil para
+# pesquisa de mercado ou enquadramento externo.
+enabled = ["knowledge_search", "knowledge_sql", "scan_chunks", "think"]
+
+[tools.storage]
+default_backend = "sqlite"
+
+[agent.deep_research]
+system_prompt = """Es um assistente de organização documental do Grupo DG.
+A base de conhecimento contém excertos de documentos de projeto com estes
+campos de metadados, disponíveis em knowledge_sql via json_extract(metadata, '$.campo'):
+  empresa, projeto, cliente, pais, area_negocio, estado, categoria, ficheiro.
+O campo doc_type de knowledge_chunks contém a categoria documental
+(Documentação Técnica, Documentação Comercial, Contratos, Propostas,
+Orçamentos, Medições, Correspondência, Pendências, Decisões, Prazos).
+Responde sempre em português de Portugal, com base apenas nos documentos
+indexados. Cita o projeto e o ficheiro de origem em cada afirmação factual.
+Quando não houver documentação suficiente para responder, dizer isso
+diretamente em vez de inferir ou adivinhar."""
+
+# Servidor local do jarvis (dashboard/API embutidos), se usado.
+# Loopback por omissão: não expõe nada à rede local.
+[server]
+host = "127.0.0.1"
+port = 8000
+agent = "deep_research"
+
+[telemetry]
+enabled = false                    # Sem telemetria de uso para esta base de trabalho
+
+[learning]
+enabled = false
