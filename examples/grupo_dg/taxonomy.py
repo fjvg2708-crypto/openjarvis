@@ -67,6 +67,11 @@ CATEGORIAS_DOCUMENTAIS = [
 
 CATEGORIA_POR_CLASSIFICAR = "Por classificar"
 
+# Categorias adicionais às dez originais, usadas por outras fontes deste
+# diretório (import_claude_export.py). Mantidas à parte para ficar claro que
+# não fazem parte das dez categorias documentais pedidas inicialmente.
+CATEGORIA_CONVERSAS = "Conversas"
+
 # ---------------------------------------------------------------------------
 # Classificação automática por palavra-chave
 # ---------------------------------------------------------------------------
@@ -174,6 +179,7 @@ def classify_categoria(caminho_relativo: str, default: str = "") -> str:
 
 __all__ = [
     "EMPRESAS",
+    "CATEGORIA_CONVERSAS",
     "AREAS_NEGOCIO",
     "PAISES_EXEMPLO",
     "ESTADOS",

@@ -123,16 +123,56 @@ def _por_categoria(conn: sqlite3.Connection, categoria: str, limite: int = 30) -
     return [dict(r) for r in rows]
 
 
+def _conversas_recentes(conn: sqlite3.Connection, limite: int = 20) -> list[dict]:
+    rows = conn.execute(
+        """
+        SELECT title, source, created_at
+        FROM knowledge_chunks
+        WHERE source = 'claude_conversas' AND deleted_at IS NULL
+        GROUP BY doc_id
+        ORDER BY created_at DESC
+        LIMIT ?
+        """,
+        (limite,),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def _outras_fontes(conn: sqlite3.Connection, limite: int = 20) -> list[dict]:
+    """Correspondência trazida por conectores nativos (jarvis connect /
+    jarvis deep-research-setup): gmail, outlook, slack, notion, etc.
+
+    Estas fontes não trazem os metadados de projeto/empresa/cliente, porque
+    os conectores do OpenJarvis ainda não sabem da taxonomia do Grupo DG.
+    Aparecem aqui à parte, não dentro das secções por projeto.
+    """
+    rows = conn.execute(
+        """
+        SELECT title, source, doc_type, created_at
+        FROM knowledge_chunks
+        WHERE source NOT LIKE 'grupo_dg:%' AND source != 'claude_conversas'
+              AND deleted_at IS NULL
+        GROUP BY doc_id
+        ORDER BY created_at DESC
+        LIMIT ?
+        """,
+        (limite,),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
 def _ultimas_alteracoes(conn: sqlite3.Connection, limite: int = 20) -> list[dict]:
+    """Últimas alterações em toda a base, projetos, conversas e correspondência."""
     rows = conn.execute(
         """
         SELECT
             title,
             doc_type,
+            source,
             json_extract(metadata, '$.projeto') AS projeto,
             created_at
         FROM knowledge_chunks
-        WHERE source LIKE 'grupo_dg:%' AND deleted_at IS NULL
+        WHERE deleted_at IS NULL
         GROUP BY doc_id
         ORDER BY created_at DESC
         LIMIT ?
@@ -183,6 +223,8 @@ def render_page(db_path: Path) -> str:
         prazos = _por_categoria(conn, "Prazos")
         decisoes = _por_categoria(conn, "Decisões")
         propostas = _por_categoria(conn, "Propostas")
+        conversas = _conversas_recentes(conn)
+        outras_fontes = _outras_fontes(conn)
         recentes = _ultimas_alteracoes(conn)
     finally:
         conn.close()
@@ -192,7 +234,9 @@ def render_page(db_path: Path) -> str:
         ("pais", "País"), ("estado", "Estado"), ("n_excertos", "Excertos indexados"),
     ]
     cols_doc = [("title", "Documento"), ("projeto", "Projeto"), ("empresa", "Empresa"), ("url", "")]
-    cols_recente = [("title", "Documento"), ("doc_type", "Categoria"), ("projeto", "Projeto"), ("created_at", "Indexado em")]
+    cols_conversa = [("title", "Conversa"), ("created_at", "Data")]
+    cols_outra_fonte = [("title", "Título"), ("source", "Fonte"), ("doc_type", "Tipo"), ("created_at", "Indexado em")]
+    cols_recente = [("title", "Documento"), ("doc_type", "Categoria"), ("source", "Fonte"), ("projeto", "Projeto"), ("created_at", "Indexado em")]
 
     return f"""<!doctype html>
 <html lang="pt">
@@ -231,7 +275,17 @@ def render_page(db_path: Path) -> str:
     {_tabela(propostas, cols_doc)}
   </div>
   <div class="cartao">
-    <h2>Últimas alterações indexadas</h2>
+    <h2>Conversas importadas ({len(conversas)})</h2>
+    {_tabela(conversas, cols_conversa)}
+  </div>
+  <div class="cartao">
+    <h2>Correspondência ligada (Gmail, Outlook, Slack, Notion)</h2>
+    {_tabela(outras_fontes, cols_outra_fonte)}
+    <p style="color:#888;font-size:12px;margin-top:8px">Ainda sem empresa/projeto/cliente
+    atribuído automaticamente. Ligar com <code>jarvis deep-research-setup</code>.</p>
+  </div>
+  <div class="cartao">
+    <h2>Últimas alterações indexadas (tudo)</h2>
     {_tabela(recentes, cols_recente)}
   </div>
   <div class="cartao">

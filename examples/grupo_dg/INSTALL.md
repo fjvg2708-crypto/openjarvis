@@ -31,6 +31,14 @@ sob o seu controlo, nunca numa sessão cloud partilhada.
   exceto os marcados como sensíveis pela política de segurança do OpenJarvis
   (`.env`, chaves privadas, credenciais) e exceto formatos binários ainda
   não suportados (ver README.md).
+- Se usar `import_claude_export.py`: o ficheiro de export que já descarregou
+  do claude.ai, e mais nada. O script não contacta o claude.ai, só lê o
+  ficheiro local.
+- Se usar `jarvis deep-research-setup`: as fontes que decidir ligar (Gmail,
+  Outlook, Slack, Notion), uma a uma, cada uma com a sua própria credencial
+  introduzida diretamente na linha de comandos do seu computador. Nenhuma
+  fica ligada sem essa ação explícita, e pode confirmar o que está ligado
+  com `jarvis connect --list`.
 - Nada é enviado para fora do computador durante a indexação nem durante as
   perguntas ao agente `deep_research`, desde que o modelo usado seja local
   (Ollama, por omissão neste preset) e a ferramenta `web_search` continue
@@ -40,9 +48,12 @@ sob o seu controlo, nunca numa sessão cloud partilhada.
 
 - Leitura das pastas de projeto listadas no manifesto.
 - Escrita apenas em `~/.openjarvis/` e na pasta do repositório.
-- Nenhuma permissão de rede é necessária para o fluxo local. Só é necessária
-  se decidir ligar conectores (Gmail, Google Drive, SharePoint) ou um motor
-  cloud, o que é uma escolha explícita e posterior, não parte deste preset.
+- Nenhuma permissão de rede é necessária para o fluxo local de indexação de
+  pastas e conversas exportadas. Rede é necessária apenas se ligar Gmail,
+  Outlook, Slack ou Notion via `jarvis deep-research-setup`, e nesse caso a
+  ligação é direta entre o seu computador e esse serviço, com a credencial
+  que fornecer, nunca através desta sessão nem de nenhum serviço da
+  Anthropic.
 
 ## Que modelos de IA são usados
 
@@ -85,22 +96,34 @@ sob o seu controlo, nunca numa sessão cloud partilhada.
 ## Como remover tudo, por completo
 
 ```bash
-# 1. Parar qualquer processo do jarvis em execução
+# 1. Se ligou Gmail, Outlook, Slack ou Notion, desligar cada um primeiro
+#    (revoga o token guardado localmente; revogar também do lado do
+#    serviço, nas definições de cada conta, para retirar o acesso por
+#    completo)
+jarvis connect --list
+jarvis connect --disconnect gmail_imap
+jarvis connect --disconnect outlook
+jarvis connect --disconnect slack
+jarvis connect --disconnect notion
+
+# 2. Parar qualquer processo do jarvis em execução
 jarvis daemon stop 2>/dev/null || true
 
-# 2. Apagar toda a configuração e dados locais do OpenJarvis
+# 3. Apagar toda a configuração e dados locais do OpenJarvis
+#    (inclui knowledge.db, logo também as conversas do claude.ai e a
+#    correspondência que tenham sido importadas)
 rm -rf ~/.openjarvis
 
-# 3. Remover o ambiente Python do projeto
+# 4. Remover o ambiente Python do projeto
 cd ~/OpenJarvis && rm -rf .venv
 
-# 4. Desinstalar o Ollama e os modelos descarregados, se já não forem
+# 5. Desinstalar o Ollama e os modelos descarregados, se já não forem
 #    necessários para outros usos
 ollama rm qwen3.5:9b
 # Linux: sudo rm -rf /usr/local/bin/ollama ~/.ollama
 # macOS: remover a aplicação Ollama e ~/.ollama
 
-# 5. Remover o próprio repositório clonado
+# 6. Remover o próprio repositório clonado
 cd .. && rm -rf OpenJarvis
 ```
 
@@ -133,6 +156,15 @@ uv run python examples/grupo_dg/index_projects.py --manifest examples/grupo_dg/m
 
 # Indexar
 uv run python examples/grupo_dg/index_projects.py --manifest examples/grupo_dg/manifest.toml
+
+# Opcional: importar o histórico de conversas do claude.ai
+# (Definições > Conta > Exportar dados, no claude.ai, aguardar o email)
+uv run python examples/grupo_dg/import_claude_export.py --export ~/Downloads/data-export.zip --dry-run
+uv run python examples/grupo_dg/import_claude_export.py --export ~/Downloads/data-export.zip
+
+# Opcional: ligar Gmail, Outlook, Slack ou Notion (pede a credencial de
+# cada serviço interativamente, aqui, no seu terminal)
+uv run jarvis deep-research-setup --skip-chat
 
 # Verificar a instalação
 uv run jarvis doctor

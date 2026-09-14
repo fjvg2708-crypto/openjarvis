@@ -47,12 +47,41 @@ $EDITOR examples/grupo_dg/manifest.toml
 python examples/grupo_dg/index_projects.py --manifest examples/grupo_dg/manifest.toml --dry-run
 python examples/grupo_dg/index_projects.py --manifest examples/grupo_dg/manifest.toml
 
-# 4. Perguntar
+# 4. Opcional: importar o histórico de conversas do claude.ai
+python examples/grupo_dg/import_claude_export.py --export ~/Downloads/data-export.zip --dry-run
+python examples/grupo_dg/import_claude_export.py --export ~/Downloads/data-export.zip
+
+# 5. Opcional: ligar Gmail, Outlook, Slack ou Notion (assistente nativo do
+#    OpenJarvis, credenciais introduzidas diretamente no seu computador)
+jarvis deep-research-setup
+
+# 6. Perguntar
 jarvis ask --agent deep_research "qual é o estado do projeto X?"
 
-# 5. Painel local
+# 7. Painel local
 python examples/grupo_dg/dashboard.py
 ```
+
+## Conversas e correspondência
+
+Além dos documentos de projeto, esta base pode reunir duas fontes extra, na
+mesma `~/.openjarvis/knowledge.db`:
+
+- **Histórico de conversas com o Claude** (`import_claude_export.py`).
+  Exporte os seus dados em claude.ai, Definições, Conta, Exportar dados, e
+  aponte o script ao `.zip` recebido por email. Use `--filtro "Grupo DG"`
+  para importar só as conversas relevantes ao trabalho, em vez de tudo.
+- **Correspondência e ferramentas de trabalho** (`jarvis deep-research-setup`).
+  Comando nativo do OpenJarvis, já existente no projeto, que liga Gmail,
+  Outlook, Slack ou Notion com as suas próprias credenciais, introduzidas no
+  seu computador, e sincroniza para a mesma base. Este preset não faz essa
+  ligação sozinho, tem de ser um passo seu, explícito.
+
+Estas duas fontes ainda não ficam associadas a um projeto/empresa/cliente
+específico (isso exigiria ensinar aos conectores nativos do OpenJarvis a
+taxonomia do Grupo DG, o que não está feito nesta versão). Ficam
+pesquisáveis e visíveis no painel à parte dos documentos de projeto, e o
+agente `deep_research` sabe distinguir a origem de cada resposta.
 
 ## Perguntas que isto responde
 
@@ -69,6 +98,8 @@ estruturadas sobre os metadados de cada excerto):
 - Que propostas estão pendentes?
 - Que riscos comerciais ou contratuais existem?
 - Que informação existe sobre determinado cliente ou fornecedor?
+- O que já discutimos sobre este assunto? *(se o histórico de conversas
+  tiver sido importado)*
 
 O painel local (`dashboard.py`) responde sem depender do modelo de
 linguagem, por leitura direta da base, a: projetos ativos, estado por
