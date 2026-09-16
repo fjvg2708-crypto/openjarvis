@@ -131,3 +131,7 @@ learning.db
 minion_logs/
 *.oj-debug.json
 oj-debug.*.json
+
+# Grupo DG example: the filled-in manifest names real local folders,
+# clients, and companies. Only the .example.toml template is tracked.
+examples/grupo_dg/manifest.toml

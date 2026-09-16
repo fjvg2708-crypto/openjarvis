@@ -278,6 +278,7 @@ def _do_download(engine: str, model: str, spec, console: Console) -> None:
             "code-assistant",
             "scheduled-monitor",
             "chat-simple",
+            "grupo-dg",
         ],
         case_sensitive=False,
     ),
