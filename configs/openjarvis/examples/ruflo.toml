@@ -1,0 +1,47 @@
+# Ruflo — orchestrator agent with Ruflo swarm, task and memory tools over MCP
+# Copy to ~/.openjarvis/config.toml
+#
+# Ruflo (https://github.com/ruvnet/ruflo, MIT) is an agent meta-harness for
+# Claude Code and Codex. It ships a stdio MCP server with 300+ tools. This
+# preset launches it with `npx` and imports a curated subset so a local model
+# is not flooded with tool schemas.
+#
+# Requirements: Node.js 20+ and npx on PATH. The first run downloads the
+# pinned ruflo package from npm (about a minute). Ruflo keeps its state in
+# `.claude-flow/` inside the directory where you start `jarvis`.
+#
+# Usage:
+#   jarvis ask "Store the decision 'use Postgres' in ruflo memory under key db-choice"
+#   jarvis ask "Create a ruflo task to review the auth module and list open tasks"
+#   jarvis ask "Initialise a ruflo swarm and show its status"
+
+[engine]
+default = "ollama"
+
+[intelligence]
+default_model = "qwen3.5:9b"
+# default_model = "qwen3.5:35b"    # Better tool-calling reliability
+
+[agent]
+default_agent = "orchestrator"      # Multi-turn with tool selection
+max_turns = 10
+
+[tools]
+enabled = [
+  "think",
+  "calculator",
+  # Ruflo MCP tools (must match include_tools below)
+  "memory_store", "memory_retrieve", "memory_search", "memory_list",
+  "task_create", "task_list", "task_status", "task_update", "task_complete",
+  "swarm_init", "swarm_status",
+  "agent_spawn", "agent_list", "agent_status",
+  "hooks_route",
+]
+
+[tools.mcp]
+enabled = true
+servers = '[{"name": "ruflo", "command": "npx", "args": ["-y", "ruflo@3.74.1", "mcp", "start"], "include_tools": ["memory_store", "memory_retrieve", "memory_search", "memory_list", "task_create", "task_list", "task_status", "task_update", "task_complete", "swarm_init", "swarm_status", "agent_spawn", "agent_list", "agent_status", "hooks_route"]}]'
+
+[server]
+host = "127.0.0.1"
+port = 8000
