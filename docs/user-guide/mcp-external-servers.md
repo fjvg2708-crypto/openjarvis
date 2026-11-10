@@ -128,6 +128,41 @@ enabled = true
 servers = '[{"name": "ha", "url": "http://172.16.3.1:9583/private_abc123", "exclude_tools": ["hassCreateBackup", "hassDeleteBackup"]}]'
 ```
 
+### Ruflo (agent orchestration)
+
+[Ruflo](https://github.com/ruvnet/ruflo) (MIT) is an agent meta-harness for
+Claude Code and Codex. Its stdio MCP server exposes swarm coordination, task
+tracking, agent spawning and a persistent vector memory. It ships more than 300
+tools, so always import a curated subset with `include_tools`: loading every
+schema overwhelms the context window of a local model.
+
+The `ruflo` preset does this for you:
+
+```bash
+jarvis init --preset ruflo --force
+```
+
+Or add the server to an existing config:
+
+```toml
+[tools.mcp]
+enabled = true
+servers = '[{"name": "ruflo", "command": "npx", "args": ["-y", "ruflo@3.74.1", "mcp", "start"], "include_tools": ["memory_store", "memory_retrieve", "memory_search", "task_create", "task_list", "task_status", "swarm_init", "swarm_status", "agent_spawn", "agent_list"]}]'
+```
+
+Notes:
+
+- Requires Node.js 20+ and `npx`. The first launch downloads the package from
+  npm. Pin the version (as above) instead of `@latest` so an upstream release
+  cannot change the tool set under you.
+- If `[tools] enabled` is set, list the Ruflo tool names there too, otherwise
+  the outer tool filter drops them.
+- Ruflo stores its state in `.claude-flow/` in the working directory where
+  OpenJarvis starts the server.
+- `agent_execute` and related tools call an LLM provider. They use
+  `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, or Ollama when neither is set.
+  Leave them out of `include_tools` to keep a session fully local.
+
 ## Transport Types
 
 ### Streamable HTTP
