@@ -131,3 +131,6 @@ learning.db
 minion_logs/
 *.oj-debug.json
 oj-debug.*.json
+
+# Ruflo runtime state (ruflo preset / ruflo init)
+.claude-flow/
